@@ -1,0 +1,25 @@
+{
+  "name": "Node_Mongo",
+  "version": "0.1.0",
+  "description": "Node_Mongo",
+  "main": "hello-world-server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified! Configure in package.json\" && exit 1"
+  },
+  "dependencies": {
+      "express": "~4.12.4",
+      "mongodb" : "~2.0.39"
+  },
+  "engines": {
+	  "node": "0.10.36"
+  },
+  "repository": "",
+  "keywords": [
+    "node.js",
+    "eclipse",
+    "nodeclipse"
+  ],
+  "author": "",
+  "license": "MIT",
+  "readmeFilename": "README.md"
+}
