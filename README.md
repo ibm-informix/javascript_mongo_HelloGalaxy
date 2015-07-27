@@ -4,7 +4,7 @@
 
 ###Relevant files:
 
-####javascript_mongo_HelloGalaxy.java
+####javascript_mongo_HelloGalaxy.js
 
 This file contains all of the sample data interacting with the database.
 
