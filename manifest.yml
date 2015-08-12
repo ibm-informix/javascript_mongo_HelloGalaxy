@@ -1,7 +1,7 @@
 applications:
 - disk_quota: 1024M
-  host: nodemongohelloworld
-  name: Nodejs Mongo Hello World
+  host: nodemongohellogalaxy
+  name: Nodejs Mongo Hello Galaxy
   path:	.
   domain: stage1.mybluemix.net
   instances: 1
