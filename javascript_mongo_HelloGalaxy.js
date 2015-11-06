@@ -76,6 +76,7 @@ var sydneyJSON = sydney.toJSON();
 // Since node uses asynchronous server calls, in order to get commands to complete sequentially they are passed into the next functions as callbacks
 // Remove the call to the next function to break the chain of events
 function doEverything(res) {
+	parseVcap();
 	MongoClient.connect(url, function(err, db) {
 		
 		if (err){ 
@@ -250,7 +251,6 @@ function doEverything(res) {
 //			if (err){
 //				return console.error("error: ", err.message);
 //			}
-//			console.log("Fif");
 //			var codeEntries = [{"countryCode": 1, "countryName": "USA and Canada"}, 
 //			                   {"countryCode": 44, "countryName": "United Kingdom"},
 //			                   {"countryCode": 81, "countryName": "Japan"},
@@ -593,13 +593,13 @@ function doEverything(res) {
 }
 function parseVcap(){
 	var vcap_services = JSON.parse(process.env.VCAP_SERVICES);
-	var credentials = vcap_services['altadb-dev'][0].credentials;
+	var credentials = vcap_services['timeseriesdatabase'][0].credentials;
 	var ssl = false;
 	if (ssl){
-		url = credentials.ssl_json_url;
+		url = credentials.mongodb_url_ssl;
 	}
 	else{
-		url = credentials.json_url;
+		url = credentials.mongodb_url;
 	}
 }
 
