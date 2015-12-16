@@ -36,13 +36,20 @@ Topics
 var express = require('express');
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
-var url = "";
+
+// To run locally, set URL here
+var URL = "";
+
+var USE_SSL = false;
+
 var port = process.env.VCAP_APP_PORT || 3000;
 var commands = [];
+
 var collectionName = "nodeMongoGalaxy";
 var joinCollectionName = "joinCollectionNode";
 var codeTableName = "codeTable";
 var cityTableName = "cityTable";
+
 function City(name, population, longitude, latitude, countryCode){
 	this.name = name;
 	this.population = population;
@@ -75,8 +82,12 @@ var sydneyJSON = sydney.toJSON();
 
 // Since node uses asynchronous server calls, in order to get commands to complete sequentially they are passed into the next functions as callbacks
 // Remove the call to the next function to break the chain of events
+
 function doEverything(res) {
-	parseVcap();
+	url = URL;
+	if (URL == null || URL == "") {
+		url = parseVcap();
+	}
 	MongoClient.connect(url, function(err, db) {
 		
 		if (err){ 
@@ -569,8 +580,9 @@ function doEverything(res) {
 			if (err){
 				return console.error("error: ", err.message);
 			}
-			db.dropCollection(codeTableName, printLog);
+			db.dropCollection(codeTableName, printBrowser);
 			commands.push("Table dropped");
+			db.close();
 		}
 		
 		
@@ -592,10 +604,10 @@ function doEverything(res) {
 	});
 }
 function parseVcap(){
-	var vcap_services = JSON.parse(process.env.VCAP_SERVICES);
-	var credentials = vcap_services['timeseriesdatabase'][0].credentials;
-	var ssl = false;
-	if (ssl){
+	var serviceName = process.env.SERVICE_NAME || 'timeseriesdatabase';
+    var vcap_services = JSON.parse(process.env.VCAP_SERVICES);
+    var credentials = vcap_services[serviceName][0].credentials;
+	if (USE_SSL){
 		url = credentials.mongodb_url_ssl;
 	}
 	else{
@@ -612,5 +624,5 @@ app.get('/', function(req, res) {
 });
 
 app.listen(port,  function() {
-	console.log("server starting on 3000");
+	console.log("server starting on " + port);
 });
