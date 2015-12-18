@@ -37,7 +37,7 @@ var express = require('express');
 var app = express();
 var MongoClient = require('mongodb').MongoClient;
 
-// To run locally, set URL here
+//To run locally, set the URL here. For example URL = "mongodb://user:password@localhost:27107/testdb"
 var URL = "";
 
 var USE_SSL = false;
@@ -91,13 +91,15 @@ function doEverything(res) {
 	MongoClient.connect(url, function(err, db) {
 		
 		if (err){ 
-			return console.error("error: ", err.message);
+			handleError(err, res, db);
+			return;
 		}
 		
 		var collection, joinCollection, codeTable, cityTable;
 		function createCollection(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			collection = db.collection(collectionName, createJoinCollection);
 			commands.push("#1 Data Structures");
@@ -105,13 +107,15 @@ function doEverything(res) {
 		}
 		function createJoinCollection(err){
 			if(err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			joinCollection = db.collection(joinCollectionName, createTable);
 		}
 		function createTable(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			db.command({"create" : cityTableName, "columns":[{"name":"name","type":"varchar(50)"}, 
 			                                                 {"name": "population", "type": "int"}, 
@@ -126,7 +130,8 @@ function doEverything(res) {
 		
 		function createCodeTable(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			db.command({"create" : codeTableName, "columns":[{"name":"countryCode","type":"int"}, 
 			                                                 {"name": "countryName", "type": "varchar(50)"}]}, function(){
@@ -139,7 +144,8 @@ function doEverything(res) {
 		// Remove the insertMany callback to avoid calling the insertMany function 
 		function insert(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 
 			collection.insert(kansasCityJSON, insertMany);
@@ -152,7 +158,8 @@ function doEverything(res) {
 		// Remove the findOne callback to avoid calling the findOne function
 		function insertMany(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			commands.push("#2.2 Insert documents into a collection");
 			collection.insert([seattleJSON, newYorkJSON, londonJSON, tokyoJSON, madridJSON], findOne);
@@ -164,7 +171,8 @@ function doEverything(res) {
 		// Remove the findAll() callback to avoid calling the findAll function
 		function findOne(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			collection.findOne({name: "Seattle"}, function (err, results) {
 				commands.push("#3 Queries");
@@ -180,7 +188,8 @@ function doEverything(res) {
 		// Remove the find() callback to avoid calling the find function
 		function findAll(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			var cursor = collection.find({"population": {"$lt" : 8000000}});
 			commands.push("#3.2 Find documents in a collection that matches query condition");
@@ -200,7 +209,8 @@ function doEverything(res) {
 		// Remove the update() callback to avoid calling the update function
 		function find(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			var cursor = collection.find();
 			commands.push("#3.3 Find all documents in a collection");
@@ -217,11 +227,13 @@ function doEverything(res) {
 		// Remove the update() callback to avoid calling the update function
 		function count(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			collection.find({"population": {"$lt" : 8000000}}).count(function(err, num){
 				if (err) {
-					return console.error("error: ", err.message);
+					handleError(err, res, db);
+					return;
 				}
 			
 				commands.push("#3.4 Count documents in a query");
@@ -232,7 +244,8 @@ function doEverything(res) {
 		
 		function order(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			var cursor = collection.find().sort({"population": -1});
 			commands.push("#3.5 Sorted documents by population");
@@ -248,7 +261,8 @@ function doEverything(res) {
 		
 		function distinct(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			collection.distinct("countryCode", function(err, num){
 				commands.push("#3.6 Find distinct codes in collection");
@@ -260,7 +274,8 @@ function doEverything(res) {
 		
 //		function joins(err){
 //			if (err){
-//				return console.error("error: ", err.message);
+//				handleError(err, res, db);
+//				return;
 //			}
 //			var codeEntries = [{"countryCode": 1, "countryName": "USA and Canada"}, 
 //			                   {"countryCode": 44, "countryName": "United Kingdom"},
@@ -273,14 +288,16 @@ function doEverything(res) {
 //			
 //			function insertJoinCollection(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+//					return;
 //				}
 //				joinCollection.insert(codeEntries, insertCodeTable);
 //			}
 //			
 //			function insertCodeTable(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+// 					return;
 //				}
 //				console.log("Got here3");
 //				codeTable.insert(codeEntries, insertCityTable);
@@ -288,14 +305,16 @@ function doEverything(res) {
 //			
 //			function insertCityTable(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+//					return;
 //				}
 //				cityTable.insert([kansasCityJSON, seattleJSON, newYorkJSON, londonJSON, madridJSON, tokyoJSON], collectionCollectionJoin);
 //			}
 //			
 //			function collectionCollectionJoin(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+// 					return;
 //				}
 //	
 //				var joinCollectionCollection = { "$collections" : { collectionName : { "$project" : { "name" : 1 , "population" : 1 , "longitude" : 1 , "latitude" : 1}} , 
@@ -321,7 +340,8 @@ function doEverything(res) {
 //			
 //			function collectionTableJoin(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+// 					return;
 //				}
 //				var joinCollectionCollection = { "$collections" : { collectionName : { "$project" : { "name" : 1 , "population" : 1 , "longitude" : 1 , "latitude" : 1}} , 
 //					codeTableName : { "$project" : { "countryCode" : 1 , "countryName" : 1}}} , 
@@ -335,7 +355,8 @@ function doEverything(res) {
 //			
 //			function tableTableJoin(err){
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+//					return;
 //				}
 //				var joinCollectionCollection = { "$collections" : { cityTableName : { "$project" : { "name" : 1 , "population" : 1 , "longitude" : 1 , "latitude" : 1}} , 
 //					codeTableName : { "$project" : { "countryCode" : 1 , "countryName" : 1}}} , 
@@ -353,7 +374,8 @@ function doEverything(res) {
 		
 		function projection(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			var cursor = collection.find({"countryCode": 1}, {"longitude":0, "latitude" : 0});
 			commands.push("#3.9 Find documents with projection");
@@ -373,7 +395,8 @@ function doEverything(res) {
 		// Remove the remove callback to avoid calling the remove function
 		function update(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			commands.push("#4 Update documents in a collection");
 			collection.update({"name": seattle.name}, {"$set": { "countryCode": 999}}, remove);
@@ -384,7 +407,8 @@ function doEverything(res) {
 		// Remove the drop callback to avoid calling the drop function
 		function remove(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			commands.push("#5 Delete documents in a collection");
 			collection.remove({"name": tokyo.name}, sqlPassthrough);
@@ -394,14 +418,16 @@ function doEverything(res) {
 		// Start of SQL Passthrough
 		function sqlPassthrough(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			
 			var sql = db.collection("system.sql");
 			commands.push("#6 SQL passthrough");
 			function sqlCreate(err){
 				if (err){
-					return console.error("error: ", err.message);
+					handleError(err, res, db);
+					return;
 				}
 				commands.push("SQL Create Table");
 				var query = {"$sql": "create if not exists table town (name varchar(255), countryCode int)"};
@@ -419,7 +445,8 @@ function doEverything(res) {
 			
 			function sqlInsert(err){
 				if (err){
-					return console.error("error: ", err.message);
+					handleError(err, res, db);
+					return;
 				}
 				commands.push("SQL Insert");
 				var query = {"$sql": "insert into town values ('Lawrence', 1)"};
@@ -435,7 +462,8 @@ function doEverything(res) {
 			 
 			function sqlDrop(err){
 				if (err){
-					return console.error("error: ", err.message);
+					handleError(err, res, db);
+					return;
 				}
 				commands.push("SQL Drop Table");
 				var query = {"$sql": "drop table town"};
@@ -454,14 +482,16 @@ function doEverything(res) {
 		
 //		function transactions(err){
 //			if (err){
-//				return console.error("error: ", err.message);
+//				handleError(err, res, db);
+//				return;
 //			}
 //			commands.push("#7 Transactions");
 //			
 //			function enableTransaction(){
 //				db.command({"transaction": "enable"}, function(err){
 //					if (err){
-//						return console.error("error: ", err.message);
+//						handleError(err, res, db);
+//						return;
 //					}
 //					commands.push("Transactions enabled");
 //					insertTransaction();
@@ -477,7 +507,8 @@ function doEverything(res) {
 //				commands.push("Commit changes");
 //				db.command({"transaction": "commit"}, function(err){
 //					if (err){
-//						return console.error("error: ", err.message);
+//						handleError(err, res, db);
+//						return;
 //					}
 //					incompletedTransaction();
 //					});
@@ -492,7 +523,8 @@ function doEverything(res) {
 //				commands.push("Rolling back transaction");
 //				db.command({"transaction": "rollback"}, function(err){
 //					if (err){
-//						return console.error("error: ", err.message);
+//						handleError(err, res, db);
+//						return;
 //					}
 //					disableTransaction();
 //				});
@@ -501,7 +533,8 @@ function doEverything(res) {
 //			function disableTransaction(){
 //				db.command({"transaction": "disable"}, function(err){
 //					if (err){
-//						return console.error("error: ", err.message);
+//						handleError(err, res, db);
+//						return;
 //					}
 //					commands.push("Transactions disabled");
 //					showChanges();
@@ -510,7 +543,8 @@ function doEverything(res) {
 //			
 //			function showChanges(err) {
 //				if (err){
-//					return console.error("error: ", err.message);
+//					handleError(err, res, db);
+//					return;
 //				}
 //				var cursor = collection.find();
 //				commands.push("Displaying Changes in Collection");
@@ -527,7 +561,8 @@ function doEverything(res) {
 		
 		function commandStatements(err){
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			commands.push("#8 Command statements");
 			
@@ -553,7 +588,8 @@ function doEverything(res) {
 		// Drops the entire collection
 		function dropCollection(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			commands.push("#9 Drop a collection");
 			db.dropCollection(collectionName, dropJoinCollection);
@@ -562,7 +598,8 @@ function doEverything(res) {
 		
 		function dropJoinCollection(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			db.dropCollection(joinCollectionName, dropCityTable);
 			commands.push("Collection dropped");
@@ -570,7 +607,8 @@ function doEverything(res) {
 		
 		function dropCityTable(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			db.dropCollection(cityTableName, dropCodeTable);
 			commands.push("Table dropped");
@@ -578,7 +616,8 @@ function doEverything(res) {
 		
 		function dropCodeTable(err) {
 			if (err){
-				return console.error("error: ", err.message);
+				handleError(err, res, db);
+				return;
 			}
 			db.dropCollection(codeTableName, printBrowser);
 			commands.push("Table dropped");
@@ -603,6 +642,22 @@ function doEverything(res) {
 	
 	});
 }
+
+function handleError(err, res, db) {
+	console.error("error: ", err.message);
+	
+	// Ensure db object gets closed
+	if (db) {
+		db.close();
+	}
+	
+	// Display result
+	commands.push("ERROR: " + err.message);
+	app.set('view engine', 'ejs');
+	res.render('index.ejs', {commands: commands});
+	commands = [];
+}
+
 function parseVcap(){
 	var serviceName = process.env.SERVICE_NAME || 'timeseriesdatabase';
     var vcap_services = JSON.parse(process.env.VCAP_SERVICES);
