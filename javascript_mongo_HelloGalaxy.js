@@ -668,6 +668,7 @@ function parseVcap(){
 	else{
 		url = credentials.mongodb_url;
 	}
+	return url;
 }
 
 app.get('/databasetest', function(req, res) {
